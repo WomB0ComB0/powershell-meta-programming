@@ -51,6 +51,37 @@ $Script:RuntimeCommands = @{
     'Elixir' = 'elixir'
 }
 
+class ValidateLanguage : System.Management.Automation.ValidateArgumentsAttribute {
+    # Constructor
+    ValidateLanguage() : base() {}
+
+    # Required abstract method implementation
+    [void] Validate([System.Management.Automation.EngineIntrinsics]$engineIntrinsics) {
+        $arguments = $engineIntrinsics.SessionState.PSVariable.GetValue("_")
+        if ($arguments -is [array]) {
+            foreach ($element in $arguments) {
+                $this.ValidateElement($element)
+            }
+        } else {
+            $this.ValidateElement($arguments)
+        }
+    }
+
+    # Helper method for validation
+    hidden [void] ValidateElement($element) {
+        if ($null -eq $element) {
+            throw [System.Management.Automation.ValidationMetadataException]::new(
+                "Language cannot be null"
+            )
+        }
+        if ($element -notin $Script:SupportedLanguages) {
+            throw [System.Management.Automation.ValidationMetadataException]::new(
+                "Language '$element' is not supported. Supported languages: $($Script:SupportedLanguages -join ', ')"
+            )
+        }
+    }
+}
+
 function New-MetaCode {
     [CmdletBinding()]
     param (
@@ -69,18 +100,15 @@ function New-MetaCode {
     )
 
     try {
-        # Create output directory if it doesn't exist
         if (-not (Test-Path $OutputPath)) {
             New-Item -ItemType Directory -Path $OutputPath | Out-Null
         }
 
-        # Generate unique filename
         $timestamp = Get-Date -Format "yyyyMMddHHmmss"
         $extension = $FileExtensions[$Language]
         $filename = "meta_${Language}_${timestamp}.$extension"
         $filepath = Join-Path $OutputPath $filename
 
-        # Save code to file
         $Code | Set-Content -Path $filepath -Encoding UTF8
 
         Write-Host "✅ Generated code file: $filepath" -ForegroundColor Green
@@ -143,12 +171,9 @@ function Get-InstallInstructions {
         'Ruby' { "Install Ruby from https://www.ruby-lang.org/en/downloads/" }
         'PHP' { "Install PHP from https://www.php.net/downloads.php" }
         'C#' { "Install .NET SDK from https://dotnet.microsoft.com/download" }
-        'CPP' { "Install GCC/G++ compiler:
-                - Windows: Install MinGW from https://www.mingw-w64.org/
-                - macOS: Install Xcode Command Line Tools
-                - Linux: sudo apt install build-essential (Ubuntu/Debian) or sudo dnf install gcc-c++ (Fedora)" }
+        'CPP' { "Install GCC/G++ compiler" }
         'Java' { "Install Java Development Kit (JDK) from https://adoptium.net/" }
-        'C' { "Install GCC compiler (see C++ instructions)" }
+        'C' { "Install GCC compiler" }
         'Kotlin' { "Install Kotlin from https://kotlinlang.org/docs/command-line.html" }
         'Dart' { "Install Dart SDK from https://dart.dev/get-dart" }
         'Go' { "Install Go from https://golang.org/dl/" }
@@ -160,38 +185,7 @@ function Get-InstallInstructions {
         default { "Please install the appropriate runtime for $Language" }
     }
 
-    return "To run $Language code, please install the required runtime:
-$instructions"
+    return "To run $Language code, please install the required runtime:`n$instructions"
 }
 
-class ValidateLanguage : System.Management.Automation.ValidateArgumentsAttribute {
-    ValidateLanguage() {
-        # Constructor
-    }
-
-    [void]Validate([object[]]$arguments) {
-        foreach ($element in $arguments) {
-            $this.ValidateElement($element)
-        }
-    }
-
-    [void]ValidateElement($element) {
-        if ($element -notin $Script:SupportedLanguages) {
-            throw [System.Management.Automation.ValidationMetadataException]::new(
-                "Language '$element' is not supported. Supported languages: $($Script:SupportedLanguages -join ', ')"
-            )
-        }
-    }
-}
-
-# Export functions
-Export-ModuleMember -Function @(
-    'New-MetaCode',
-    'Invoke-MetaCode',
-    'Get-InstallInstructions'
-) -Variable @(
-    'ModuleVersion',
-    'SupportedLanguages',
-    'FileExtensions',
-    'RuntimeCommands'
-)
+Export-ModuleMember -Function @('New-MetaCode', 'Invoke-MetaCode', 'Get-InstallInstructions')

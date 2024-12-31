@@ -1,20 +1,15 @@
 #region Setup
 BeforeAll {
-    # Get the module path relative to the test file
     $modulePath = Join-Path $PSScriptRoot "../powershell-meta-programming.psm1"
     
-    # Verify module path exists
     if (-not (Test-Path $modulePath)) {
         throw "Module path not found: $modulePath"
     }
     
-    # Remove module if it exists
     Remove-Module powershell-meta-programming -ErrorAction SilentlyContinue
     
-    # Import the module with verbose output
     Import-Module $modulePath -Force -Verbose
     
-    # Verify functions are available
     $requiredFunctions = @('New-MetaCode', 'Invoke-MetaCode', 'Get-InstallInstructions')
     foreach ($func in $requiredFunctions) {
         if (-not (Get-Command $func -ErrorAction SilentlyContinue)) {
@@ -121,7 +116,7 @@ Describe "PowerShell Meta Programming Module" {
             $Script:SupportedLanguages | ForEach-Object {
                 $instructions = Get-InstallInstructions -Language $_
                 $instructions | Should -Not -BeNullOrEmpty
-                $instructions | Should -Match $_ # Should mention the language
+                $instructions | Should -Match $_
             }
         }
 
