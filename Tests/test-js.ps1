@@ -1,5 +1,7 @@
 Import-Module ./Powershell-Meta-Programming.psm1 -Force
 
+# 2025
+
 # Create a simple JavaScript code
 $jsCode = @'
 console.log(new Array.from({ length: 50 }).reduce((a, b) => a + b, 0))
