@@ -51,42 +51,13 @@ $Script:RuntimeCommands = @{
     'Elixir' = 'elixir'
 }
 
-class ValidateLanguage : System.Management.Automation.ValidateArgumentsAttribute {
-    # Constructor
-    ValidateLanguage() : base() {}
-
-    # Required abstract method implementation
-    [void] Validate([System.Management.Automation.EngineIntrinsics]$engineIntrinsics) {
-        $arguments = $engineIntrinsics.SessionState.PSVariable.GetValue("_")
-        if ($arguments -is [array]) {
-            foreach ($element in $arguments) {
-                $this.ValidateElement($element)
-            }
-        } else {
-            $this.ValidateElement($arguments)
-        }
-    }
-
-    # Helper method for validation
-    hidden [void] ValidateElement($element) {
-        if ($null -eq $element) {
-            throw [System.Management.Automation.ValidationMetadataException]::new(
-                "Language cannot be null"
-            )
-        }
-        if ($element -notin $Script:SupportedLanguages) {
-            throw [System.Management.Automation.ValidationMetadataException]::new(
-                "Language '$element' is not supported. Supported languages: $($Script:SupportedLanguages -join ', ')"
-            )
-        }
-    }
-}
-
 function New-MetaCode {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
-        [ValidateSet([ValidateLanguage])]
+        [ValidateSet('CPP', 'Java', 'Python', 'C', 'C#', 'JavaScript', 'TypeScript',
+            'PHP', 'Swift', 'Kotlin', 'Dart', 'Go', 'Ruby', 'Scala',
+            'Rust', 'Racket', 'Erlang', 'Elixir')]
         [string]$Language,
 
         [Parameter(Mandatory = $true)]
@@ -129,7 +100,9 @@ function Invoke-MetaCode {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
-        [ValidateSet([ValidateLanguage])]
+        [ValidateSet('CPP', 'Java', 'Python', 'C', 'C#', 'JavaScript', 'TypeScript',
+            'PHP', 'Swift', 'Kotlin', 'Dart', 'Go', 'Ruby', 'Scala',
+            'Rust', 'Racket', 'Erlang', 'Elixir')]
         [string]$Language,
 
         [Parameter(Mandatory = $true)]

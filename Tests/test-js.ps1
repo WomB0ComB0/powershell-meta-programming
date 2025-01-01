@@ -1,12 +1,8 @@
-# Import the module
-Import-Module ./powershell-meta-programming.psm1 -Force
+Import-Module ./Powershell-Meta-Programming.psm1 -Force
 
 # Create a simple JavaScript code
 $jsCode = @'
-console.log("Hello from JavaScript!");
-const numbers = [1, 2, 3, 4, 5];
-console.log("Sum:", numbers.reduce((a, b) => a + b, 0));
-console.log("Test completed successfully!");
+console.log(new Array.from({ length: 50 }).reduce((a, b) => a + b, 0))
 '@
 
 try {
